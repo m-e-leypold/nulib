@@ -1,0 +1,99 @@
+# ocaml-corebuild.mklib: Build a simple ocaml project with corebuild -*- mode: makefile-gmake -*-
+# (C) 2015 M E Leypold
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+clean-all: cleaner
+
+# ---------------------------------------
+
+SOURCES          := $(wildcard *.ml *.mli)
+ML-SOURCES       := $(sort $(patsubst %.p2.ml, %.ml, $(patsubst %.p2.mli, %.mli, \
+                           $(patsubst %.pp.mli, %.mli, $(patsubst %.pp.ml, %.ml, $(SOURCES))))))
+ML-OBJECTS       := $(patsubst %.ml,  %, $(filter  %.ml, $(ML-SOURCES)))
+ML-INTERFACES    := $(patsubst %.mli, %, $(filter %.mli, $(ML-SOURCES)))
+
+ML-TEST-SUITES   := $(filter %-checks, $(ML-OBJECTS))
+ML-PROGRAMS      := $(sort $(filter-out $(MODULE-PATTERN) $(ML-INTERFACES), $(ML-OBJECTS)) $(ML-TEST-SUITES))
+
+
+
+ML-GENERATED-SOURCES := $(sort $(patsubst %.p2.ml, %.ml, $(patsubst %.p2.mli, %.mli,        \
+                           $(patsubst %.pp.mli, %.mli, $(patsubst %.pp.ml, %.ml,            \
+                               $(filter %.pp.ml, $(SOURCES) $(filter %.pp.mli, $(SOURCES))) \
+			       $(filter %.p2.ml, $(SOURCES) $(filter %.p2.mli, $(SOURCES))))))))
+
+ML-BYTE-PROGRAMS := $(ML-PROGRAMS:%=%.byte)
+
+debug::
+	echo $(ML-TEST-SUITES)
+
+# -------------------------------------------------
+
+UPDATED ?= .var/UPDATED
+
+%.ml: %.pp.ml
+	camlp2 $< >$@
+
+%.ml: %.p2.ml
+	camlp2 $< >$@
+
+ml-sources: $(ML-SOURCES)
+
+ml-byte-programs: $(ML-BYTE-PROGRAMS)
+
+CORE-BUILD = $(BUILD-ENV;) corebuild -I . -cflags -g $(PACKAGES:%=-pkg %) 
+
+$(UPDATED)/ml-byte-programs: $(ML-SOURCES)
+	mkdir -p $(@D)
+	$(CORE-BUILD)  $(ML-BYTE-PROGRAMS)
+	touch $@
+
+$(ML-BYTE-PROGRAMS): %: $(UPDATED)/ml-byte-programs
+	test -f $@ || { $(CORE-BUILD) $@ ; }
+	touch $@
+
+.var/checks/%.log: %.byte
+	mkdir -p $(@D)
+	$(BUILD-ENV;) ./$< >$*.log 2>&1 || { cat $*.log; false; }
+	mv $*.log $@
+	echo ; awk <$@ '/^== Result/{s=1}(s){print}'
+
+ml-checks: export OCAMLRUNPARAM = b
+ml-checks: $(ML-TEST-SUITES:%=.var/checks/%.log)
+check:: ml-checks
+
+
+clean::
+	rm -f $(ML-BYTE-PROGRAMS) $(UPDATED)/ml-byte-programs $(ML-GENERATED-SOURCES) 
+
+cleaner::
+	rm -rf _build
+
+# -------------------------------------------------
+
+
+BUILD-ENV; ?= $(patsubst %, . ./Buildenv ;, $(wildcard Buildenv))
+
+%.byte: %.ml
+	$(BUILD-ENV;) corebuild -I . -cflags -g $(PACKAGES:%=-pkg %) $@
+
+# ----------------------------------------
+
+clean::
+	rm -f *~
+
+cleaner:: clean
+	rm -rf .var

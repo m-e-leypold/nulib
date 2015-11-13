@@ -1,0 +1,12 @@
+#
+# You'll probably need to adapt this or set OPAMROOT before build
+#
+
+if ( set +u; test -z "$OPAMROOT") ; then # better would be w/o fork
+    if  test -d ~/.app/opam; then 
+	export OPAMROOT=~/.app/opam
+    elif test -d ~/.opam; then 
+	export OPAMROOT=~/.opam
+    fi
+    eval "$(opam config env)"    
+fi

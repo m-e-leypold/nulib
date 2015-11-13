@@ -1,0 +1,26 @@
+
+# This was for use qith quickscript - as of 2015-11-13 probably broken
+
+all: p1.byte
+export OCAMLRUNPARAM = b
+PACKAGES = str
+
+check:
+	touch t1 && ./t1
+
+check2: p1.byte
+	$(BUILD-ENV); ./p1.byte
+
+BUILD-ENV = . ./Buildenv
+
+%.ml: %.pp.ml
+	./camlp2 $< >$@
+
+%.ml: %.p2.ml
+	./camlp2 $< >$@
+
+%.byte: %.ml
+	$(BUILD-ENV); corebuild -I . -cflags -g $(PACKAGES:%=-pkg %) $@
+
+clean:
+	rm -rf S* _build *~
