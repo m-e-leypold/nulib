@@ -25,7 +25,7 @@ ML-SOURCES       := $(sort $(patsubst %.p2.ml, %.ml, $(patsubst %.p2.mli, %.mli,
 ML-OBJECTS       := $(patsubst %.ml,  %, $(filter  %.ml, $(ML-SOURCES)))
 ML-INTERFACES    := $(patsubst %.mli, %, $(filter %.mli, $(ML-SOURCES)))
 
-ML-TEST-SUITES   := $(filter %-checks, $(ML-OBJECTS))
+ML-TEST-SUITES   := $(filter %-checks %-draft %-demo, $(ML-OBJECTS))
 ML-PROGRAMS      := $(sort $(filter-out $(MODULE-PATTERN) $(ML-INTERFACES), $(ML-OBJECTS)) $(ML-TEST-SUITES))
 
 
@@ -97,3 +97,17 @@ clean::
 
 cleaner:: clean
 	rm -rf .var
+
+
+# ----------------------------------------
+
+sh:
+	@echo "Starting subshell with project environment ..."
+	$(BUILD-ENV;) export PS1="$PS1"; exec $$( { which bash ; which sh; } | head -1 )
+
+run[%]: export OCAMLRUNPARAM = b
+run[%]: %.byte
+	$(BUILD-ENV;) ./$*.byte
+
+r\:%: run[%]
+	@true

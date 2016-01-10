@@ -44,8 +44,6 @@ uninstall: live-uninstall
 reinstall: uninstall install
 setup:     project-setup
 
-capture:
-	./tools/capture.sh
 
 # Stuff below hooks into the authors local infrastructur, you probably
 # don't want or need that.

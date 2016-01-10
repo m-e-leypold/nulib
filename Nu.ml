@@ -29,3 +29,7 @@ module Testing = struct
 include NuTesting
 end
 
+module CommandlineInterface = struct
+include NuCommandlineInterface
+end		   
+

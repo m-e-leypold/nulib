@@ -3,3 +3,4 @@
 /.var
 *~
 *.byte
+/nu*-checks.ml

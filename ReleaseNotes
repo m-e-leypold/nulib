@@ -1,0 +1,54 @@
+* Nulib, release 0.2 (Nu.CommandlineInterface)
+
+- An embedded DSL for defining command line interfaces.
+
+  Example:
+  --------
+
+    type params = { inputfiles  : bytes list;
+                    outfilename : bytes;
+                    verbosity   : bool;
+                    tag_as      : bytes;
+    }
+
+    let main =
+
+      single_command_interface
+
+        ~defaults:  { outfilename = "-" ;
+                      inputfiles  = [];
+                      verbosity = false;
+                      tag_as = "temp"
+                    }
+
+        ~options:   [
+          flag    "verbose" ~aliases:["v"] (fun p   -> {p with verbosity     = true });
+          option  "tag"     ~aliases:["t"] (fun s p -> {p with tag_as        = s    });
+          option  "to-file" ~aliases:["o"] (fun s p -> {p with outfilename   = s    });
+        ]
+
+        ~posargs: ( fun posargs -> fun p -> { p with inputfiles = posargs } )
+        ~call:    ( fun p -> do_something_with p )
+
+    main (argv_as_list ()) |> exit
+
+- As in 0.1 OPAM builds and extensive docs are missing.
+
+- Nu.CommandlineInterface is currently limited so that '-ofile' is not
+  understood, but '-o file' is. This will change.
+
+- Added release notes for 0.1 as well.
+
+
+
+
+
+* Nulib, release 0.1 (Nu.System, Nu.Testing)
+
+Nulib is a scripting oriented ocaml library. Currently we have:
+
+- Nu.System:    A embedded DSL to invoke external programs.
+- Nu.Testing:   A ad hoc testing framework ("lightweight" an work in progress)
+- nuTesting.p2: Macros for interfacing with Nu.Testing.
+
+Missing: Docs. OPAM build.

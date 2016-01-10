@@ -63,8 +63,8 @@ let TEST(run_operators) = begin  (* check basic run operators *)
 
     EXPECT( ["hi guys"] = ( Script.verbatim "echo hi guys" |> get_stdout () ));
     
-    EXPECT( try ignore (Script.verbatim "exit 1"  |> get_stdout ()); true with Run.Error _ -> true );
-    EXPECT( try ignore (Script.verbatim "kill $$" |> get_stdout ()); true with Run.Error _ -> true );
+    EXPECT( try ignore (Script.verbatim "exit 1"  |> get_stdout ()); false with Run.Error _ -> true );
+    EXPECT( try ignore (Script.verbatim "kill $$" |> get_stdout ()); false with Run.Error _ -> true );
 
     
     EXPECT_WONT_RAISE( ignore (Script.verbatim "exit 0" |> get_stdout ()) );    
